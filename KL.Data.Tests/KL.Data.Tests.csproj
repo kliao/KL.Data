@@ -57,10 +57,15 @@
     <Compile Include="BaseKeyWordsTrieTest.cs" />
     <Compile Include="BaseTrieTest.cs" />
     <Compile Include="FoldingTrieTest.cs" />
+    <Compile Include="SalePriceTrackerTest.cs" />
     <Compile Include="TrieTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\KL.Data.Examples\KL.Data.Examples.csproj">
+      <Project>{2e026979-d13d-4fff-ab84-0034590d6181}</Project>
+      <Name>KL.Data.Examples</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KL.Data\KL.Data.csproj">
       <Project>{8329c028-898d-49b6-9802-f8790a2041cb}</Project>
       <Name>KL.Data</Name>

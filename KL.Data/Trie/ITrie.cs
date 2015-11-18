@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KL.Data.Trie
 {
-    public interface ITrie<TLabel, TData>
+    public interface ITrie<in TLabel, TData>
     {
         IEnumerable<TData> Retrieve(TLabel[] query);
         void Add(TLabel[] key, TData value);
+        void Add(TLabel[] query, TData data, Func<TData, TData, TData> combineData);
     }
 }

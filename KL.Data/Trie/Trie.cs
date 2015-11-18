@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KL.Data.Trie
 {
@@ -15,7 +12,12 @@ namespace KL.Data.Trie
 
         public void Add(TLabel[] query, TData data)
         {
-            Add(query, 0, data);
+            Add(query, data, (existingValue, insertValue) => insertValue);
+        }
+
+        public void Add(TLabel[] query, TData data, Func<TData, TData, TData> combineData)
+        {
+            Add(query, 0, data, combineData);
         }
     }
 }

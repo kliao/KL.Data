@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NUnit.Framework;
 using KL.Data.Trie;
 
@@ -9,62 +10,70 @@ namespace KL.Data.Tests
     [TestFixture]
     public abstract class BaseTrieTest
     {
-        protected ITrie<char,int> Trie { get; private set; }
+        protected ITrie<char,IEnumerable<int>> Trie { get; private set; }
 
-        [OneTimeSetUpAttribute]
+        [TestFixtureSetUp]
         public virtual void Setup()
         {
             Trie = CreateTrie();
             for (int i = 0; i < Words40.Length; i++)
             {
-                Trie.Add(Words40[i].ToCharArray(), i);
+                var q = new Queue<int>();
+                q.Enqueue(i);
+
+                Trie.Add(
+                    Words40[i].ToCharArray(), 
+                    q, 
+                    (existing, insert) 
+                        => existing == null ? insert : existing.Concat(insert));
             }
         }
 
-        protected abstract ITrie<char,int> CreateTrie();
+        protected abstract ITrie<char,IEnumerable<int>> CreateTrie();
 
-        public string[] Words40 = new[] {
-                                            "daubreelite",
-                                            "daubingly",
-                                            "daubingly",
-                                            "phycochromaceous",
-                                            "phycochromaceae",
-                                            "phycite",
-                                            "athymic",
-                                            "athwarthawse",
-                                            "athrotaxis",
-                                            "unaccorded",
-                                            "unaccordant",
-                                            "unaccord",
-                                            "kokoona",
-                                            "koko",
-                                            "koklas",
-                                            "s",
-                                            "flexibilty",
-                                            "flexanimous",
-                                            "collochemistry",
-                                            "collochemistry",
-                                            "collocationable",
-                                            "capomo",
-                                            "capoc",
-                                            "capoc",
-                                            "ungivingness",
-                                            "ungiveable",
-                                            "ungive",
-                                            "prestandard",
-                                            "prestandard",
-                                            "prestabilism",
-                                            "megalocornea",
-                                            "megalocephalia",
-                                            "megalocephalia",
-                                            "afaced",
-                                            "aettekees",
-                                            "aetites",
-                                            "comolecule",
-                                            "comodato",
-                                            "comodato",
-                                            "cognoscibility"
-                                        };
+        public string[] Words40 =
+        {
+            "daubreelite",
+            "daubingly",
+            "daubingly",
+            "phycochromaceous",
+            "phycochromaceae",
+            "phycite",
+            "athymic",
+            "athwarthawse",
+            "athrotaxis",
+            "unaccorded",
+            "unaccordant",
+            "unaccord",
+            "kokoona",
+            "koko",
+            "koklas",
+            "s",
+            "flexibilty",
+            "flexanimous",
+            "collochemistry",
+            "collochemistry",
+            "collocationable",
+            "capomo",
+            "capoc",
+            "capoc",
+            "ungivingness",
+            "ungiveable",
+            "ungive",
+            "prestandard",
+            "prestandard",
+            "prestabilism",
+            "megalocornea",
+            "megalocephalia",
+            "megalocephalia",
+            "afaced",
+            "aettekees",
+            "aetites",
+            "comolecule",
+            "comodato",
+            "comodato",
+            "cognoscibility"
+        };
 
         [TestCase("d", new[] { 0, 1, 2 })]
         [TestCase("da", new[] { 0, 1, 2 })]
@@ -455,7 +464,7 @@ namespace KL.Data.Tests
         [TestCase("cognoscibility", new[] { 39 })]
         public void Test(string query, IEnumerable<int> expected)
         {
-            IEnumerable<int> actual = Trie.Retrieve(query.ToCharArray());
+            IEnumerable<int> actual = Trie.Retrieve(query.ToCharArray()).SelectMany(x => x ?? Enumerable.Empty<int>());
             CollectionAssert.AreEquivalent(expected, actual);
         }
 
@@ -465,58 +474,61 @@ namespace KL.Data.Tests
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            ITrie<char,int> trie = CreateTrie();
+            ITrie<char,IEnumerable<int>> trie = CreateTrie();
             foreach (var phrase in Words40)
             {
-                trie.Add(phrase.ToCharArray(), phrase.GetHashCode());
+                var q = new Queue<int>();
+                q.Enqueue(phrase.GetHashCode());
+                trie.Add(phrase.ToCharArray(), q);
             }
 
             stopwatch.Stop();
             Console.WriteLine("Time: {0} milliseconds", stopwatch.Elapsed.TotalMilliseconds);
         }
 
-        public string[] LongPhrases40 = new[] {
-                                                  "enterfeatnanocephalousssanapaiteadullamitesorchidologiessphenomandibularunremandedmeechersevererszamaforegamelaundsconelikesphalmaphylloptosiselvishvyproverbiologistdouanesdispensationalismapotypetearsheetsmesodisilicicnoncorruptnessheliotroperjinnywinkunrecurrent",
-                                                  "scourwayproimmunityunstonetutoriatepreauditorydeaconaldishwipinginstillatorpardaosdespondentnessbourreaunonponderositysubconicquiniblemowtnonrecitationticchenreburnishnonexecutionsforfaulterflaughteringmausolespermysallokinesisescribientesbauckiehomopauseoverinfluence",
-                                                  "noncontinuableprostascokemantelautomaticallydarnixsnowslipssubgoalcaddopostencephalondilutelyunrulablekilanalmacenistaangustateembryoctonychunneredlingismsoverdignifiedsparsonsitesubaqueansupercatholicallysprecounselmicrodistillationdisrestorecondensednesspredirectpinipicrin",
-                                                  "unpredaciousnesschiarooscurossalfinrectigradeliverberryimpallupanayanodiflorousreadjourningrillettesaxeassoilzieingfruitwomanendonuclearunadventurousnesserinlacworksbandaiteparchableryukyuannondeformedanomitevolvocaceousreawaretiburtineunviolinedcuselitesawman",
-                                                  "octavianporencephaliamirabilisesagrypnodefichtelitestylionindusiformacanthonhandspansunglospectrobolometerminisedananimadversivenesstrilliaceousoveytogetherhoodschoolgirlismnonmelodramaticallyssidiondawneredsubsphericpleuropedaloverlockingsamoritedendroclimatologiessyinstantiliquoracataposis",
-                                                  "overdelicatenesskischensizeablenessseptomaxillarychumpishbelanderfallageantipragmaticismagranulocyticmechanalnoneasternepimyocardialbegoredretreatingnessfourquinecavilingnessradiestheticpolymixiidmelanotekitecacurunweepinghechtsactinostlimburgitesnonsubmergibilitysawbwaadddaunattractablewitherweightbacteriopurpurin",
-                                                  "concatervateinogenesissgyrographembiotocidaeinguinodyniasfemorisrewishnonballotingoxidoreductionradiomuscularnoncurtailingsentogenousunrefundingrotavatorsuneathsflexibiltyunconsiderableszinkificationsnorseleruninstructiblesecchjuckholluschickslabellate",
-                                                  "banintraligamentousargononunresumptivefinancistcentrarchidfumisteryserragemonseignevrunfoolishnessmahajunleatherfishesunfattenunsoothingsethylthioethanesuperrespectablesconsolanparcimoniesadenousblinterpedagogerybinoosphradiumconformatorsanisylflambageacquaintant",
-                                                  "voicebandhuamuchilarticulabilitygiornatatelightlyingdealkylatepostbulbarosteotrophydiscommissioningcalombapoyntingvectionmacrosomiaimpolarilymetapoliticbiaswisebeedgedparafloccularitcheoglansolepieceladylintywhiteuncoherentlycoprophilismpiaclekarachivoglitespeculativismupbboreinterequinoctialbubbleless",
-                                                  "sesoenteritismormaorshipmislyunpromiscuouslybescribblinghypopetalypennyfeenonobscurityhayliftpietosoessentializationflappetapparailsanticoagulatorprenominicaldrymouthspolymetamericmonariobelonosphaeritedwaiblesnonconsumptivelypapaiabeforenesscorkmakermacrosplanchnicundiagrammaticallymaxostoma",
-                                                  "lasiocampidprunetincoventrybrigandishsuperacidityinterlucatenilometerveilednesslivishlyimprecatorilyrustfulmucroniformavelongeassociatorscleisteschylocystperithelialcapellaneprisiadkahypothetistgonotocontoariotomyssamidoazoattemperatorphthirusvellenagetriticalnessesthylose",
-                                                  "unexcoriatedunimpressionabilityradiotropicbaronizedunfalcatedunretractedbayheadcoracocostaldovefloweroverbravenotopteridquadrinomicalsubdolouslyexhalatesceleratesperiareumcondensedlyoverpuissantlyhumanitymongermanucodemontrossaprilsilicoferruginousnpfxcaumstonetrebletreehyenanchinextraregularlybecommasemipathologically",
-                                                  "sherryvalliesnonmonarchallysovereasinessmesocoelesubgenitalsouserworsementchondrectomydestinismavidyalysosomallyuncircumlocutoryboardysugescentpimolasciosophistarretezconscientisationleatmensanthroposociologistphyllobranchiatelonelihoodinteressortortilclintonchuradaunsatiabilityantitemperance",
-                                                  "palimpsetsubmontagnebicornutemucoflocculentsallactiteparagonimiasisdreckiersubtotemunnormalnesssupersensitisercorruptednessluskschangarinemendableanthropoclimatologycobaltocyanicssacalinenondeficientcarcasslessfrustulumboliviansprepsychotictidelessnessrhyotaxiticundermuslinscurtaxepanlogist",
-                                                  "precultureploughjoggersbodilizephysiologueerethizontidaehistoplasminlanchowsstatutumamphophilnondeprivationelectromotionspanpolismretrorenalpentadecagonmuscosenessarmoraciahippocastanaceousrecessorndebelelayshipmagnetolysisunhandselledfraudlessnessreevasionllerphytochemicalsbefan",
-                                                  "caddiingunludicroussdiscanderingfindyssheemraadnonglucosidalbuggesssscotographyinfoldmentunpredictivelymullerianphoenicochroitearcanenessestoxiinfectiousayacahuitecesserscadastrationleucocytolysesperistrumoustextiferousunbemoanedcolloxylindevauntpergelisolcounterinteresthala",
-                                                  "odoriphoreunfacetiousnessstauropegiadermatolysissbodypaintsalligatoridaeuntimorouslyjimsonpaintproofeylupwrapsunresignedlyprealludeunvisiblybulbotubermultititularunverbosenessgastrolatrouseelwrackstemplarlikenesssmysophiliaurushicqurangrasswidowhoodcyanuricheathenriess",
-                                                  "weeshnonmischievousnesscitronciruscungeboiorthopyramidsourjackunsortcompanionizingesthesiometricinshiningchrysopeeanacrogynaeundestroyableproletarizationnunciustephromyeliticmevingpresubstitutiondecipiumunmachineableapomecometrysacraryprecanonicaltuboovarianbemonstersreedeoophoromalaciaselectrographitewaltrot",
-                                                  "spacinessesfarmholdpyrocollodiontalterlamentationalattendresscakersleyinginterirrigationtransdermicaddlementsunshameablydihydrogensclairsentientdesonationunpiouslypteropogonscalfhoodduodramaswoolulosekenogeneticavailmentendotropictrymsfeebleheartedbounceablys",
-                                                  "dispendiouslypostfeministsunicursalityflaggellaparavaginitistroussheteroxenousawardmentequangularmycoplasmatacaearomanipugliaflavorsomenesshemiteriaungraphicboltelnonextensionautocombustiblerhizomatictruismaticsketchabilitiestrilinoleateindazolecanotierscombercaryopterisesflattyfluoratesinecureshipcolocasia",
-                                                  "cubiconetechnopsychologyprewarrantspostcommissureimpersonatrixsunoriginativewhafaboutfetoplacentaltridecenetransmigrationistslimnographmescalismsitalianoctachronousimproficiencypreeffectmyotrophyvaleraldehydesapskullsubjectileoligoprotheticdollfacebedotehydroscopistexpressorstowsenonswearermisregulating",
-                                                  "palpigerousarchimperialistgangesbitterlessfrankfortsaikuchisemivitalquinquiliteralodorometerbandboxicaloverquicklybedinmargarateacetlaunderopinionmassednessunfrettyruntgenizingcyanophycinshadelessnessplaymongerstyrolstrophanhinlipopexiainterclericalfordablenessmakeshiftinesssfootpaddery",
-                                                  "blatherydisunifysnonforeignesspurpartsulphocarbamideoutferrethardockcoevolvedcoevolvesnondemonstrativenessnonreparationpetrolizedunvitrescentunneareduncentralcleronomyroadstonebritishismdispassionedsundescriptivenesshydrogalvanicautoplasmotherapyhoordingredocketingunwreckedenfoldennonbankableprimevityunetymologically",
-                                                  "paraplastinovermotorglaikitnesseskingrowmesiolingualthackoorcrossbeakoutpraisedsenaitecryometryherschelbutsudanseparatoriesdiscoplacentalianpreinsulatechoristryprincipestrichophytiaundislodgeableextratabularpreemployercouadiaphanyeventognathousintercirculatingscribbliestcobblerlessantrinsubministrantrockish",
-                                                  "outfledattaccopremadnessempiriologicaluneradicateduntautologicallygantonoleocystmstantiliberalistvasemakingcocklighthydroxydehydrocorticosteroneanoscopetartagostackhousiaceousparanuclearterminizepurplinessorepearchfouetsinterdistinguishpanarchyjnanendriyaepirogeneticlateroversionidicantiphthisicalambulancingregidor",
-                                                  "pyroxylenechararasseparatedlyanachronismaticalpicroerythrinfaninmesostomidnondespoticallygilgameshrecompetitionteredinidaebuteonineisosterismtranshumanizegasboatnoctambulesuperplausiblycossyritelingtowpalaebiologistschronosemicglossoplegiahypoalkalineendoaortitislushiercreammakermonosemicestocadawoilienocardia",
-                                                  "pamplegiaepikeianonperceptiblesimmeringlyhydrocaulussuresbykathaguitermanitelamnectomyoutmalaproppedhemiramphinebeneplacitnonsilicatewelkeremovelesscorrelativismwitchbroomrisslebirkiestshemitepandariccroatiaphotoepinasticmacrosplanchnicornationinsensingsorroanoncumbrousparatitlesmahdism",
-                                                  "strouthiocameliancyanochroianonimpeachablesubtrochantericbudgypailettepaininglypindanonexemptionmonoplasmaticbiliprasinnoncelestialshithertolyleneenrobementastronsmyrnioteingeniosepihyalcytococciseignioralcondiddlementditremidundermanagerkidgierpootersbetrunkdeparliamentvidkids",
-                                                  "aponogetonaceousunconsultativesvirificshrinkergchileansoutshovingrhombiformtricompoundcapotenpachangaigniformdespairfulnesssprintlinebetafitelethargicalnesssericiculturescrassilingualnonadjacenciessketoketenevellincherheterizeelectrocataphoreticarchaeohippusalsweillfouetsundrossinessreduviidae",
-                                                  "unsmirkingnonamotionlaryngismalnonsynodicallyleysingdamaskinesmookspondilbishoplessbritishersnoldaraireslaccicprivilegerswangynonsingularitiesnoucheopisthographicalsubtransverselyweirdlessnessubermenschsrehypothecateincorporealizepractitioneryuninucleatedinvertibratesafenerrelayer",
-                                                  "calamaroidfarcemeatsubsulfatecolluncoredeemerbeslaveredunshammedprocellosedarksummonocondyliangollanspolarogramprepedunclebakeoutabnegativeoctachlorideundejectedopsyprionacelacinulasmudfatsammyblackbushrifledomautoserotherapypandeanredecisionconfricamentumsomaticovisceral",
-                                                  "extumescenceintwinementarenginternuncewoohoodiscodactylouseccoproticophorichindustanduskeroverpublicizingumbrettranshumanizehornslatebelozengednonannexationhousefurnishingsdinnerlysylvestralrefordsupercrimescrotectomyimperatesgriddlerspostallantoicnonsuspensiveresalutationmainpinbradyseisms",
-                                                  "nonactualnessegiptononcategoricalnesslecturessdeanthropomorphicsoverperchfibrinokinasebeentosophisticativegleicheniaceaeophiodontidaegroomishbescribblingsprecommunicationcataphrenicprecogitatingparochialitiesinfranchisethebsesquisquarezamindarieshospitaangelshipunderpriestprimegiltsanctcrotonbughuddroun",
-                                                  "pseudolunulanonlyricalnessscatchiebeerhallspostclaviculariguassuunloathlyunallusivelyovercontributionsirventunprofoundsemianunmammaliannonderogativecryptovolcanismantisudoralpleasablenesssquilliannucleohistonenondisparaginguncallusedcageylysephyrulasaumurelencticalcivilizadeintramorainicfrontstall",
-                                                  "epithalamitemplelikebiforinsalmanazarsblepharoncosissprediscountablecummockacheuleanunbanneredfleyednessdecohesionshirtlessnessamexpentadecahydratedunearthliestadetautophotoelectrictarantulatedtenderishtinynessantiasthmaticsunretrogradingporokeratosistaprootedskeraunophobiatarrietrollflowers",
-                                                  "jettinglydessignmentsnontravelerpalatiumglucocorticorduninthronedtertiiagaricalesswaptreunenonruminationthyreoiditispimanunderhangespadongheleemsbicyclismmethylidynehomoclinalrosalgercorrealgobacknontrademadreporaldioptographunderbrewmennoniteunconceitedlys",
-                                                  "intersolublesubtowergorgoniaprejudiciousnesslerizationbahanprelexicalcopertarentrayeusepseudobranchathoniteyakshadutchingcajanusginkgoalesabudefduflaparohysterectomyantidiphtheriainquietnessnonpuebloprereceiverglossemicintergonialnonplatitudinouslyphosphoreousdisauncountermandedabbycircuminsularbinotic",
-                                                  "alumnalscalyclinonmetamorphosishemisaprophyticrewarehousenonsupporterurbanakylcrysticpreburnunsuperlativeinsectiferoussoldatfirstersalagounprobatedcytoblastemousdowagerismlymphorrheasubarticlestntsidioglossiaspottledbackspeiringlovesomenessspongiosityantigonorrhealextracalicular",
-                                                  "corrigesalintataophyllogenoussprisaltrivantrenettespecificativelypaedotrophiesmillibarnmelolonthineplenartiesctenodontumbelliferoneregraduateunorganicallypelagraembootaunadmirablyfingerfishesrearraysinistruousresolicitationforeweighscomodatograviersseptenniadtwitchfireethicosocial",
-                                                  "forepolingsemifeudalismunhumannesschaungedadvolutionwinterboundunneedfulnessserenditecanangapetrolintocodynamometerdisquietednesslachrymaeformpostzygapophysisverminlikehydagedolosunannihilatorymurlackschamberwomansuperunityscnidoscoluswiwimoorillsuncalkgattinehargeisanemoricole"
-                                              };
+        public string[] LongPhrases40 =
+        {
+            "enterfeatnanocephalousssanapaiteadullamitesorchidologiessphenomandibularunremandedmeechersevererszamaforegamelaundsconelikesphalmaphylloptosiselvishvyproverbiologistdouanesdispensationalismapotypetearsheetsmesodisilicicnoncorruptnessheliotroperjinnywinkunrecurrent",
+            "scourwayproimmunityunstonetutoriatepreauditorydeaconaldishwipinginstillatorpardaosdespondentnessbourreaunonponderositysubconicquiniblemowtnonrecitationticchenreburnishnonexecutionsforfaulterflaughteringmausolespermysallokinesisescribientesbauckiehomopauseoverinfluence",
+            "noncontinuableprostascokemantelautomaticallydarnixsnowslipssubgoalcaddopostencephalondilutelyunrulablekilanalmacenistaangustateembryoctonychunneredlingismsoverdignifiedsparsonsitesubaqueansupercatholicallysprecounselmicrodistillationdisrestorecondensednesspredirectpinipicrin",
+            "unpredaciousnesschiarooscurossalfinrectigradeliverberryimpallupanayanodiflorousreadjourningrillettesaxeassoilzieingfruitwomanendonuclearunadventurousnesserinlacworksbandaiteparchableryukyuannondeformedanomitevolvocaceousreawaretiburtineunviolinedcuselitesawman",
+            "octavianporencephaliamirabilisesagrypnodefichtelitestylionindusiformacanthonhandspansunglospectrobolometerminisedananimadversivenesstrilliaceousoveytogetherhoodschoolgirlismnonmelodramaticallyssidiondawneredsubsphericpleuropedaloverlockingsamoritedendroclimatologiessyinstantiliquoracataposis",
+            "overdelicatenesskischensizeablenessseptomaxillarychumpishbelanderfallageantipragmaticismagranulocyticmechanalnoneasternepimyocardialbegoredretreatingnessfourquinecavilingnessradiestheticpolymixiidmelanotekitecacurunweepinghechtsactinostlimburgitesnonsubmergibilitysawbwaadddaunattractablewitherweightbacteriopurpurin",
+            "concatervateinogenesissgyrographembiotocidaeinguinodyniasfemorisrewishnonballotingoxidoreductionradiomuscularnoncurtailingsentogenousunrefundingrotavatorsuneathsflexibiltyunconsiderableszinkificationsnorseleruninstructiblesecchjuckholluschickslabellate",
+            "banintraligamentousargononunresumptivefinancistcentrarchidfumisteryserragemonseignevrunfoolishnessmahajunleatherfishesunfattenunsoothingsethylthioethanesuperrespectablesconsolanparcimoniesadenousblinterpedagogerybinoosphradiumconformatorsanisylflambageacquaintant",
+            "voicebandhuamuchilarticulabilitygiornatatelightlyingdealkylatepostbulbarosteotrophydiscommissioningcalombapoyntingvectionmacrosomiaimpolarilymetapoliticbiaswisebeedgedparafloccularitcheoglansolepieceladylintywhiteuncoherentlycoprophilismpiaclekarachivoglitespeculativismupbboreinterequinoctialbubbleless",
+            "sesoenteritismormaorshipmislyunpromiscuouslybescribblinghypopetalypennyfeenonobscurityhayliftpietosoessentializationflappetapparailsanticoagulatorprenominicaldrymouthspolymetamericmonariobelonosphaeritedwaiblesnonconsumptivelypapaiabeforenesscorkmakermacrosplanchnicundiagrammaticallymaxostoma",
+            "lasiocampidprunetincoventrybrigandishsuperacidityinterlucatenilometerveilednesslivishlyimprecatorilyrustfulmucroniformavelongeassociatorscleisteschylocystperithelialcapellaneprisiadkahypothetistgonotocontoariotomyssamidoazoattemperatorphthirusvellenagetriticalnessesthylose",
+            "unexcoriatedunimpressionabilityradiotropicbaronizedunfalcatedunretractedbayheadcoracocostaldovefloweroverbravenotopteridquadrinomicalsubdolouslyexhalatesceleratesperiareumcondensedlyoverpuissantlyhumanitymongermanucodemontrossaprilsilicoferruginousnpfxcaumstonetrebletreehyenanchinextraregularlybecommasemipathologically",
+            "sherryvalliesnonmonarchallysovereasinessmesocoelesubgenitalsouserworsementchondrectomydestinismavidyalysosomallyuncircumlocutoryboardysugescentpimolasciosophistarretezconscientisationleatmensanthroposociologistphyllobranchiatelonelihoodinteressortortilclintonchuradaunsatiabilityantitemperance",
+            "palimpsetsubmontagnebicornutemucoflocculentsallactiteparagonimiasisdreckiersubtotemunnormalnesssupersensitisercorruptednessluskschangarinemendableanthropoclimatologycobaltocyanicssacalinenondeficientcarcasslessfrustulumboliviansprepsychotictidelessnessrhyotaxiticundermuslinscurtaxepanlogist",
+            "precultureploughjoggersbodilizephysiologueerethizontidaehistoplasminlanchowsstatutumamphophilnondeprivationelectromotionspanpolismretrorenalpentadecagonmuscosenessarmoraciahippocastanaceousrecessorndebelelayshipmagnetolysisunhandselledfraudlessnessreevasionllerphytochemicalsbefan",
+            "caddiingunludicroussdiscanderingfindyssheemraadnonglucosidalbuggesssscotographyinfoldmentunpredictivelymullerianphoenicochroitearcanenessestoxiinfectiousayacahuitecesserscadastrationleucocytolysesperistrumoustextiferousunbemoanedcolloxylindevauntpergelisolcounterinteresthala",
+            "odoriphoreunfacetiousnessstauropegiadermatolysissbodypaintsalligatoridaeuntimorouslyjimsonpaintproofeylupwrapsunresignedlyprealludeunvisiblybulbotubermultititularunverbosenessgastrolatrouseelwrackstemplarlikenesssmysophiliaurushicqurangrasswidowhoodcyanuricheathenriess",
+            "weeshnonmischievousnesscitronciruscungeboiorthopyramidsourjackunsortcompanionizingesthesiometricinshiningchrysopeeanacrogynaeundestroyableproletarizationnunciustephromyeliticmevingpresubstitutiondecipiumunmachineableapomecometrysacraryprecanonicaltuboovarianbemonstersreedeoophoromalaciaselectrographitewaltrot",
+            "spacinessesfarmholdpyrocollodiontalterlamentationalattendresscakersleyinginterirrigationtransdermicaddlementsunshameablydihydrogensclairsentientdesonationunpiouslypteropogonscalfhoodduodramaswoolulosekenogeneticavailmentendotropictrymsfeebleheartedbounceablys",
+            "dispendiouslypostfeministsunicursalityflaggellaparavaginitistroussheteroxenousawardmentequangularmycoplasmatacaearomanipugliaflavorsomenesshemiteriaungraphicboltelnonextensionautocombustiblerhizomatictruismaticsketchabilitiestrilinoleateindazolecanotierscombercaryopterisesflattyfluoratesinecureshipcolocasia",
+            "cubiconetechnopsychologyprewarrantspostcommissureimpersonatrixsunoriginativewhafaboutfetoplacentaltridecenetransmigrationistslimnographmescalismsitalianoctachronousimproficiencypreeffectmyotrophyvaleraldehydesapskullsubjectileoligoprotheticdollfacebedotehydroscopistexpressorstowsenonswearermisregulating",
+            "palpigerousarchimperialistgangesbitterlessfrankfortsaikuchisemivitalquinquiliteralodorometerbandboxicaloverquicklybedinmargarateacetlaunderopinionmassednessunfrettyruntgenizingcyanophycinshadelessnessplaymongerstyrolstrophanhinlipopexiainterclericalfordablenessmakeshiftinesssfootpaddery",
+            "blatherydisunifysnonforeignesspurpartsulphocarbamideoutferrethardockcoevolvedcoevolvesnondemonstrativenessnonreparationpetrolizedunvitrescentunneareduncentralcleronomyroadstonebritishismdispassionedsundescriptivenesshydrogalvanicautoplasmotherapyhoordingredocketingunwreckedenfoldennonbankableprimevityunetymologically",
+            "paraplastinovermotorglaikitnesseskingrowmesiolingualthackoorcrossbeakoutpraisedsenaitecryometryherschelbutsudanseparatoriesdiscoplacentalianpreinsulatechoristryprincipestrichophytiaundislodgeableextratabularpreemployercouadiaphanyeventognathousintercirculatingscribbliestcobblerlessantrinsubministrantrockish",
+            "outfledattaccopremadnessempiriologicaluneradicateduntautologicallygantonoleocystmstantiliberalistvasemakingcocklighthydroxydehydrocorticosteroneanoscopetartagostackhousiaceousparanuclearterminizepurplinessorepearchfouetsinterdistinguishpanarchyjnanendriyaepirogeneticlateroversionidicantiphthisicalambulancingregidor",
+            "pyroxylenechararasseparatedlyanachronismaticalpicroerythrinfaninmesostomidnondespoticallygilgameshrecompetitionteredinidaebuteonineisosterismtranshumanizegasboatnoctambulesuperplausiblycossyritelingtowpalaebiologistschronosemicglossoplegiahypoalkalineendoaortitislushiercreammakermonosemicestocadawoilienocardia",
+            "pamplegiaepikeianonperceptiblesimmeringlyhydrocaulussuresbykathaguitermanitelamnectomyoutmalaproppedhemiramphinebeneplacitnonsilicatewelkeremovelesscorrelativismwitchbroomrisslebirkiestshemitepandariccroatiaphotoepinasticmacrosplanchnicornationinsensingsorroanoncumbrousparatitlesmahdism",
+            "strouthiocameliancyanochroianonimpeachablesubtrochantericbudgypailettepaininglypindanonexemptionmonoplasmaticbiliprasinnoncelestialshithertolyleneenrobementastronsmyrnioteingeniosepihyalcytococciseignioralcondiddlementditremidundermanagerkidgierpootersbetrunkdeparliamentvidkids",
+            "aponogetonaceousunconsultativesvirificshrinkergchileansoutshovingrhombiformtricompoundcapotenpachangaigniformdespairfulnesssprintlinebetafitelethargicalnesssericiculturescrassilingualnonadjacenciessketoketenevellincherheterizeelectrocataphoreticarchaeohippusalsweillfouetsundrossinessreduviidae",
+            "unsmirkingnonamotionlaryngismalnonsynodicallyleysingdamaskinesmookspondilbishoplessbritishersnoldaraireslaccicprivilegerswangynonsingularitiesnoucheopisthographicalsubtransverselyweirdlessnessubermenschsrehypothecateincorporealizepractitioneryuninucleatedinvertibratesafenerrelayer",
+            "calamaroidfarcemeatsubsulfatecolluncoredeemerbeslaveredunshammedprocellosedarksummonocondyliangollanspolarogramprepedunclebakeoutabnegativeoctachlorideundejectedopsyprionacelacinulasmudfatsammyblackbushrifledomautoserotherapypandeanredecisionconfricamentumsomaticovisceral",
+            "extumescenceintwinementarenginternuncewoohoodiscodactylouseccoproticophorichindustanduskeroverpublicizingumbrettranshumanizehornslatebelozengednonannexationhousefurnishingsdinnerlysylvestralrefordsupercrimescrotectomyimperatesgriddlerspostallantoicnonsuspensiveresalutationmainpinbradyseisms",
+            "nonactualnessegiptononcategoricalnesslecturessdeanthropomorphicsoverperchfibrinokinasebeentosophisticativegleicheniaceaeophiodontidaegroomishbescribblingsprecommunicationcataphrenicprecogitatingparochialitiesinfranchisethebsesquisquarezamindarieshospitaangelshipunderpriestprimegiltsanctcrotonbughuddroun",
+            "pseudolunulanonlyricalnessscatchiebeerhallspostclaviculariguassuunloathlyunallusivelyovercontributionsirventunprofoundsemianunmammaliannonderogativecryptovolcanismantisudoralpleasablenesssquilliannucleohistonenondisparaginguncallusedcageylysephyrulasaumurelencticalcivilizadeintramorainicfrontstall",
+            "epithalamitemplelikebiforinsalmanazarsblepharoncosissprediscountablecummockacheuleanunbanneredfleyednessdecohesionshirtlessnessamexpentadecahydratedunearthliestadetautophotoelectrictarantulatedtenderishtinynessantiasthmaticsunretrogradingporokeratosistaprootedskeraunophobiatarrietrollflowers",
+            "jettinglydessignmentsnontravelerpalatiumglucocorticorduninthronedtertiiagaricalesswaptreunenonruminationthyreoiditispimanunderhangespadongheleemsbicyclismmethylidynehomoclinalrosalgercorrealgobacknontrademadreporaldioptographunderbrewmennoniteunconceitedlys",
+            "intersolublesubtowergorgoniaprejudiciousnesslerizationbahanprelexicalcopertarentrayeusepseudobranchathoniteyakshadutchingcajanusginkgoalesabudefduflaparohysterectomyantidiphtheriainquietnessnonpuebloprereceiverglossemicintergonialnonplatitudinouslyphosphoreousdisauncountermandedabbycircuminsularbinotic",
+            "alumnalscalyclinonmetamorphosishemisaprophyticrewarehousenonsupporterurbanakylcrysticpreburnunsuperlativeinsectiferoussoldatfirstersalagounprobatedcytoblastemousdowagerismlymphorrheasubarticlestntsidioglossiaspottledbackspeiringlovesomenessspongiosityantigonorrhealextracalicular",
+            "corrigesalintataophyllogenoussprisaltrivantrenettespecificativelypaedotrophiesmillibarnmelolonthineplenartiesctenodontumbelliferoneregraduateunorganicallypelagraembootaunadmirablyfingerfishesrearraysinistruousresolicitationforeweighscomodatograviersseptenniadtwitchfireethicosocial",
+            "forepolingsemifeudalismunhumannesschaungedadvolutionwinterboundunneedfulnessserenditecanangapetrolintocodynamometerdisquietednesslachrymaeformpostzygapophysisverminlikehydagedolosunannihilatorymurlackschamberwomansuperunityscnidoscoluswiwimoorillsuncalkgattinehargeisanemoricole"
+        };
 
     }
 }

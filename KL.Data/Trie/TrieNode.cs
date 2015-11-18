@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KL.Data.Trie
 {
     public class TrieNode<TLabel, TData> : TrieNodeBase<TLabel, TData>
     {
         private readonly Dictionary<TLabel, TrieNode<TLabel, TData>> children;
-        private readonly Queue<TData> dataStore;
+        private TData data;
 
         protected TrieNode()
         {
             children = new Dictionary<TLabel, TrieNode<TLabel, TData>>();
-            dataStore = new Queue<TData>();
         }
 
-        public override IEnumerable<TData> Data
+        public override TData Data
         {
-            get { return dataStore; }
+            get { return data; }
         }
+
         protected override IEnumerable<TrieNodeBase<TLabel, TData>> Children
         {
             get { return children.Values; }
@@ -46,9 +43,9 @@ namespace KL.Data.Trie
                 : null;
         }
 
-        protected override void AddValue(TData data)
+        protected override void AddValue(TData tmpData, Func<TData,TData,TData> combineData)
         {
-            dataStore.Enqueue(data);
+            data = combineData(data, tmpData);
         }
     }
 

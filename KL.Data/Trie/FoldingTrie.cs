@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KL.Data.Trie
 {
@@ -27,9 +23,8 @@ namespace KL.Data.Trie
                 child = child.GetChildOrNull(query, position);
                 if (child == null) break;
 
-                TrieNode<TLabel, TData> nextNode = (TrieNode<TLabel, TData>)child;
-                if (nextNode.Data.Any())
-                    accumulate = folder(accumulate, nextNode.Data.First());
+                var nextNode = (TrieNode<TLabel, TData>)child;
+                accumulate = folder(accumulate, nextNode.Data);
                 position++;
             }
             return resultSelector(accumulate);

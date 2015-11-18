@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,23 +16,25 @@ namespace KL.Data.Tests
         {
             while (true)
             {
-                ITrie<char,int> trie = CreateTrie();
+                ITrie<char, IEnumerable<int>> trie = CreateTrie();
+                var q = new Queue<int>();
+                q.Enqueue(LongPhrases40.GetHashCode());
                 LongPhrases40
                     .AsParallel()
-                    .ForAll(phrase => trie.Add(phrase.ToCharArray(), phrase.GetHashCode()));
+                    .ForAll(phrase => trie.Add(phrase.ToCharArray(), q));
             }
         }
 
-        protected override ITrie<char, int> CreateTrie()
+        protected override ITrie<char, IEnumerable<int>> CreateTrie()
         {
-            return new Trie<char,int>();
+            return new Trie<char, IEnumerable<int>>();
         }
     }
     public class KeyWordsTrieTest : BaseKeyWordsTrieTest
     {
-        protected override ITrie<string, int> CreateTrie()
+        protected override ITrie<string, int?> CreateTrie()
         {
-            return new Trie<string, int>();
+            return new Trie<string, int?>();
         }
     }
 }

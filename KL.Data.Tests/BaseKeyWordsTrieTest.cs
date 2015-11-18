@@ -7,9 +7,9 @@ namespace KL.Data.Tests
 {
     public abstract class BaseKeyWordsTrieTest
     {
-        protected ITrie<string, int> Trie { get; private set; }
+        protected ITrie<string, int?> Trie { get; private set; }
 
-        [OneTimeSetUpAttribute]
+        [TestFixtureSetUp]
         public virtual void Setup()
         {
             Trie = CreateTrie();
@@ -19,7 +19,7 @@ namespace KL.Data.Tests
             }
         }
 
-        protected abstract ITrie<string, int> CreateTrie();
+        protected abstract ITrie<string, int?> CreateTrie();
 
         public string[][] KeyWords = new[] {
                                             new string[] {"hello", "world"},
@@ -36,7 +36,7 @@ namespace KL.Data.Tests
         public void Test(string[] query, IEnumerable<int> expected)
         {
             Console.WriteLine(string.Join(",", query));
-            IEnumerable<int> actual = Trie.Retrieve(query);
+            IEnumerable<int?> actual = Trie.Retrieve(query);
             CollectionAssert.AreEquivalent(expected, actual);
         }
     }

@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KL.Data.Trie
 {
     public abstract class TrieNodeBase<TLabel, TData>
     {
-        public abstract IEnumerable<TData> Data { get; }
+        public abstract TData Data { get; }
         protected abstract IEnumerable<TrieNodeBase<TLabel, TData>> Children { get; }
-        public void Add(TLabel[] key, int position, TData value)
+
+        public void Add(TLabel[] key, int position, TData value, Func<TData,TData,TData> combineData = null)
         {
             if (key == null) throw new ArgumentNullException("key");
             if (EndOfLabels(position, key))
             {
-                AddValue(value);
+                AddValue(value, combineData);
                 return;
             }
             TrieNodeBase<TLabel, TData> child = GetOrCreateChild(key[position]);
-            child.Add(key, position + 1, value);
+            child.Add(key, position + 1, value, combineData);
         }
-        protected abstract void AddValue(TData data);
+
+        protected abstract void AddValue(TData data, Func<TData, TData, TData> combineData);
 
         public static bool EndOfLabels(int position, TLabel[] key)
         {
@@ -49,7 +49,7 @@ namespace KL.Data.Trie
 
         private IEnumerable<TData> ValuesDeep()
         {
-            return Subtree().SelectMany(node => node.Data);
+            return Subtree().Select(node => node.Data);
         }
 
         protected IEnumerable<TrieNodeBase<TLabel, TData>> Subtree()
