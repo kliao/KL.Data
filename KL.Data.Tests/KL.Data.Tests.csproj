@@ -54,7 +54,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BaseKeyWordsTrieTest.cs" />
     <Compile Include="BaseTrieTest.cs" />
+    <Compile Include="FoldingTrieTest.cs" />
     <Compile Include="TrieTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

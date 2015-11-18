@@ -28,7 +28,8 @@ namespace KL.Data.Trie
                 if (child == null) break;
 
                 TrieNode<TLabel, TData> nextNode = (TrieNode<TLabel, TData>)child;
-                accumulate = folder(accumulate, nextNode.Data.FirstOrDefault());
+                if (nextNode.Data.Any())
+                    accumulate = folder(accumulate, nextNode.Data.First());
                 position++;
             }
             return resultSelector(accumulate);
