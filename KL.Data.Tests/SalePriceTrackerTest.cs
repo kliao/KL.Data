@@ -14,8 +14,8 @@ namespace KL.Data.Tests
             tracker = new SalePriceTracker();
             for (int i = 0; i < ProductKeys.Length; i++)
             {
-                var productKey = ProductKeys[i];
-                tracker.Add(new PctSale(0.8), productKey.BrandName, productKey.ProductCategory, productKey.ProductId);
+                var productKey = ProductKeys[i].Item1;
+                tracker.Add(ProductKeys[i].Item2, productKey.BrandName, productKey.ProductCategory, productKey.ProductId);
             }
         }
 
@@ -23,15 +23,20 @@ namespace KL.Data.Tests
         {
             public string BrandName;
             public string ProductCategory;
-            public string ProductId;
+            public string ProductId ;
         }
         
-        protected ProductKey[] ProductKeys =
+        protected Tuple<ProductKey,ISalePrice>[] ProductKeys =
         {
-            new ProductKey { BrandName = "levis", ProductCategory = "jeans", ProductId = "1234"}
+            Tuple.Create(new ProductKey { BrandName = "levis", ProductCategory = "jeans", ProductId = "1234"}, new PctSale(0.8)),
+            Tuple.Create(new ProductKey { BrandName = "levis", ProductCategory = "jeans" }, new PctSale(0.8)),
+            Tuple.Create(new ProductKey { BrandName = "levis", ProductCategory = "jeans", ProductId = "2222" }, new ExcludeFromSale()),
         };
 
-        [TestCase("levis:jeans:1234", 50, 40)]
+        [TestCase("levis:jeans:1111", 50, 40)]
+        [TestCase("levis:jeans:1234", 50, 32)]
+        [TestCase("levis:jeans:2222", 150, 150)]
+        [TestCase("nudie:jeans:1111", 100, 100)]
         public void Test(string productCode, double originalPrice, double expectedSalePrice)
         {
             //Console.WriteLine(string.Join(",", productKey));

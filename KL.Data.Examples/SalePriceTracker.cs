@@ -30,6 +30,12 @@ namespace KL.Data.Examples
         }
     }
 
+    public class ExcludeFromSale : ISalePrice
+    {
+        // get an "inverse" function from the class that we want to negate.
+        // inspect the function chain and cancel out the 2 functions
+    }
+
     public class SalePriceTracker
     {
         private FoldingTrie<string, ISalePrice> productTree;
@@ -40,8 +46,9 @@ namespace KL.Data.Examples
 
         public void Add(ISalePrice salePrice, string brandName, string productCategory, string productId)
         {
-            string[] key = { brandName, productCategory, productId };
-            productTree.Add(key, salePrice);
+            List<string> key = new List<string> { brandName, productCategory, productId };
+            key.RemoveAll(s => string.IsNullOrWhiteSpace(s));
+            productTree.Add(key.ToArray(), salePrice);
         }
 
         public IEnumerable<ISalePrice> Retrieve(string brandName, string productCategory, string productId)
